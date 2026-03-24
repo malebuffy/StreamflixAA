@@ -1,0 +1,4 @@
+config.json
+library.json
+__pycache__/
+*.pyc
