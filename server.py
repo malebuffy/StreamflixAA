@@ -25,6 +25,7 @@ from flask import (
 app = Flask(__name__)
 
 CONFIG_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "config.json")
+CONFIG_DEFAULT_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "config.default.json")
 LIBRARY_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "library.json")
 
 DEFAULT_CONFIG = {
@@ -45,12 +46,30 @@ library_lock = threading.Lock()
 
 def load_config():
     global config
-    if os.path.exists(CONFIG_FILE):
+    if os.path.exists(CONFIG_FILE) and os.path.isfile(CONFIG_FILE):
         with open(CONFIG_FILE, "r", encoding="utf-8") as f:
             config = {**DEFAULT_CONFIG, **json.load(f)}
+    elif os.path.exists(CONFIG_DEFAULT_FILE):
+        with open(CONFIG_DEFAULT_FILE, "r", encoding="utf-8") as f:
+            config = {**DEFAULT_CONFIG, **json.load(f)}
+        save_config()
     else:
         config = dict(DEFAULT_CONFIG)
         save_config()
+
+    # Environment variable overrides (useful for Docker)
+    if os.environ.get("STREAMFLIX_MOVIES_DIR"):
+        dirs = [d.strip() for d in os.environ["STREAMFLIX_MOVIES_DIR"].split(",") if d.strip()]
+        if dirs:
+            config["movies_folders"] = dirs
+    if os.environ.get("STREAMFLIX_TVSHOWS_DIR"):
+        dirs = [d.strip() for d in os.environ["STREAMFLIX_TVSHOWS_DIR"].split(",") if d.strip()]
+        if dirs:
+            config["tvshows_folders"] = dirs
+    if os.environ.get("STREAMFLIX_PORT"):
+        config["port"] = int(os.environ["STREAMFLIX_PORT"])
+    if os.environ.get("STREAMFLIX_SERVER_NAME"):
+        config["server_name"] = os.environ["STREAMFLIX_SERVER_NAME"]
 
 
 def save_config():

@@ -27,12 +27,14 @@ A self-hosted media server that lets you stream your personal movie and TV show 
 
 ## Installation
 
-### 1. Install Python
+### Option A: Run with Python
+
+#### 1. Install Python
 
 Download and install Python 3.10 or newer from [python.org](https://www.python.org/downloads/).  
 Make sure to check **"Add Python to PATH"** during installation.
 
-### 2. Install dependencies
+#### 2. Install dependencies
 
 Open a terminal in the `streamflix-server` folder and run:
 
@@ -40,7 +42,7 @@ Open a terminal in the `streamflix-server` folder and run:
 pip install -r requirements.txt
 ```
 
-### 3. Start the server
+#### 3. Start the server
 
 ```bash
 python server.py
@@ -48,6 +50,70 @@ python server.py
 
 The server will start on **port 8642** by default.  
 Open `http://localhost:8642` in your browser to access the admin UI.
+
+### Option B: Run with Docker
+
+#### Quick start
+
+```bash
+docker build -t streamflix-server .
+docker run -d \
+  --name streamflix-server \
+  -p 8642:8642 \
+  -v /path/to/your/movies:/media/movies \
+  -v /path/to/your/tvshows:/media/tvshows \
+  -v ./config.json:/app/config.json \
+  -e STREAMFLIX_MOVIES_DIR=/media/movies \
+  -e STREAMFLIX_TVSHOWS_DIR=/media/tvshows \
+  streamflix-server
+```
+
+> **Important:** Create `config.json` on the host before starting the container.  
+> If the file does not exist, Docker will create a **directory** instead and the server will fail to write config.  
+> You can copy `config.default.json` as your starting point:
+>
+> ```bash
+> cp config.default.json config.json
+> ```
+
+#### Docker Compose
+
+Create a `docker-compose.yml`:
+
+```yaml
+services:
+  streamflix-server:
+    build: .
+    container_name: streamflix-server
+    ports:
+      - "8642:8642"
+    volumes:
+      - ./config.json:/app/config.json
+      - /path/to/your/movies:/media/movies
+      - /path/to/your/tvshows:/media/tvshows
+    environment:
+      - STREAMFLIX_MOVIES_DIR=/media/movies
+      - STREAMFLIX_TVSHOWS_DIR=/media/tvshows
+    restart: unless-stopped
+```
+
+Then run:
+
+```bash
+cp config.default.json config.json   # only needed on first run
+docker compose up -d
+```
+
+#### Environment Variables
+
+| Variable | Description | Example |
+|---|---|---|
+| `STREAMFLIX_MOVIES_DIR` | Movie folder(s) inside the container (comma-separated) | `/media/movies` |
+| `STREAMFLIX_TVSHOWS_DIR` | TV show folder(s) inside the container (comma-separated) | `/media/tvshows` |
+| `STREAMFLIX_PORT` | Override the server port | `8642` |
+| `STREAMFLIX_SERVER_NAME` | Override the server display name | `My Media Server` |
+
+Environment variables take precedence over `config.json` values.
 
 ---
 
@@ -66,7 +132,9 @@ All settings can be changed from the **web UI** at `http://localhost:8642` under
 | Video Extensions | File extensions treated as video | `.mp4, .mkv, .avi, .m4v, .webm, .mov` |
 | Subtitle Extensions | File extensions treated as subtitles | `.srt, .vtt, .ass, .ssa, .sub` |
 
-Configuration is saved to `config.json` next to `server.py`.
+Configuration is saved to `config.json` next to `server.py`.  
+A `config.default.json` template is included in the repository — copy it to `config.json` on first run if one doesn't exist yet.  
+When running in Docker, environment variables (`STREAMFLIX_MOVIES_DIR`, etc.) override the corresponding `config.json` values.
 
 ---
 
@@ -283,6 +351,10 @@ Access the admin panel at `http://localhost:8642` with three tabs:
 ---
 
 ## Running as a Background Service (Optional)
+
+### Docker (Recommended)
+
+Using Docker with `restart: unless-stopped` (as shown in the Docker Compose example above) is the simplest way to keep the server running in the background and auto-start on boot.
 
 ### Windows
 

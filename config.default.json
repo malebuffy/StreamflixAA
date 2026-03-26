@@ -1,0 +1,10 @@
+{
+  "server_name": "My Media Server",
+  "port": 8642,
+  "language": "en",
+  "movies_folders": [],
+  "tvshows_folders": [],
+  "video_extensions": [".mp4", ".mkv", ".avi", ".m4v", ".webm", ".mov"],
+  "subtitle_extensions": [".srt", ".vtt", ".ass", ".ssa", ".sub"],
+  "auto_scan_minutes": 0
+}
