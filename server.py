@@ -212,7 +212,9 @@ def scan_movies():
     movies = []
     for folder in config.get("movies_folders", []):
         if not os.path.isdir(folder):
+            print(f"[scan] Movies folder not found, skipping: {folder}")
             continue
+        before = len(movies)
         for root, _, files in os.walk(folder):
             for fname in sorted(files):
                 if not is_video(fname):
@@ -233,6 +235,7 @@ def scan_movies():
                     "poster": cover,
                     "banner": "",
                 })
+        print(f"[scan] Movies folder: {folder} -> {len(movies) - before} movies")
     return movies
 
 
@@ -240,8 +243,15 @@ def scan_tvshows():
     shows = []
     for folder in config.get("tvshows_folders", []):
         if not os.path.isdir(folder):
+            print(f"[scan] TV Shows folder not found, skipping: {folder}")
             continue
-        for show_dir in sorted(Path(folder).iterdir()):
+        before = len(shows)
+        try:
+            entries = sorted(Path(folder).iterdir())
+        except OSError as e:
+            print(f"[scan] TV Shows folder cannot be read, skipping: {folder} ({e})")
+            continue
+        for show_dir in entries:
             if not show_dir.is_dir():
                 continue
             show_title = show_dir.name
@@ -297,6 +307,7 @@ def scan_tvshows():
                     "poster": cover,
                     "banner": "",
                 })
+        print(f"[scan] TV Shows folder: {folder} -> {len(shows) - before} shows")
     return shows
 
 
