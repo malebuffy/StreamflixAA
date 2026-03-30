@@ -2,6 +2,8 @@
 
 A self-hosted media server that lets you stream your personal movie and TV show collection through the **StreamflixAA** Android app — on your phone, tablet, or Android Auto.
 
+Join the betatest here: [streamflixaa.online](https://www.streamflixaa.online)
+
 ---
 
 ## Features
